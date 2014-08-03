@@ -37,4 +37,8 @@ class OrderDaoMongo extends OrderDao with Configuration with IdGeneratorMongo {
 			case None => throw new NotFoundException("Order")
 		}
 	}
+	
+	def getAll(): List[Order] = {
+		coll.map(dbo => grater[Order].asObject(dbo)).toList
+	}	
 }

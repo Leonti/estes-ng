@@ -21,7 +21,7 @@ class RestServiceActor extends Actor with RestService {
 
 }
 
-trait RestService extends HttpService with SLF4JLogging {
+trait RestService extends HttpService with CORSSupport with SLF4JLogging {
 
 	implicit val executionContext = actorRefFactory.dispatcher
 
@@ -35,144 +35,162 @@ trait RestService extends HttpService with SLF4JLogging {
 		}
 	}
 
-	val restRoute = respondWithMediaType(MediaTypes.`application/json`) {
-
-		path("dish") {
-			post {
-				entity(as[Dish]) {
-					dish =>
-						complete {
-							DishService.create(dish).toJson.prettyPrint
-						}
-				}
-
-			}
-		} ~
-		path("dish" / LongNumber) {
-			dishId =>
-				{
-					get {
-						complete {
-							DishService.get(dishId).toJson.prettyPrint
-						}
-					} ~
-					put {
-						entity(as[Dish]) {
-							dish =>
-								complete {
-									DishService.update(dishId, dish).toJson.prettyPrint
-								}
-						}
-					} ~
-					delete {
-						complete {
-							DishService.delete(dishId)
-						}
+	val restRoute: Route = respondWithMediaType(MediaTypes.`application/json`) {
+		cors {
+			path("dish") {
+				post {
+					entity(as[Dish]) {
+						dish =>
+							complete {
+								DishService.create(dish)
+							}
+					}
+				} ~
+				get {
+					complete {
+						DishService.getAll()
 					}
 				}
-		} ~
-		path("ingredient") {
-			post {
-				entity(as[Ingredient]) {
-					ingredient =>
-						complete {
-							IngredientService.create(ingredient).toJson.prettyPrint
-						}
-				}
-
-			}
-		} ~
-		path("ingredient" / LongNumber) {
-			ingredientId =>
-				{
-					get {
-						complete {
-							IngredientService.get(ingredientId).toJson.prettyPrint
-						}
-					} ~
-					put {
-						entity(as[Ingredient]) {
-							ingredient =>
-								complete {
-									IngredientService.update(ingredientId, ingredient).toJson.prettyPrint
-								}
-						}
-					} ~
-					delete {
-						complete {
-							IngredientService.delete(ingredientId)
+			} ~
+			path("dish" / LongNumber) {
+				dishId =>
+					{
+						get {
+							complete {
+								DishService.get(dishId)
+							}
+						} ~
+						put {
+							entity(as[Dish]) {
+								dish =>
+									complete {
+										DishService.update(dishId, dish)
+									}
+							}
+						} ~
+						delete {
+							complete {
+								DishService.delete(dishId)
+							}
 						}
 					}
-				}
-		} ~		
-		path("waiter") {
-			post {
-				entity(as[Waiter]) {
-					waiter =>
-						complete {
-							WaiterService.create(waiter).toJson.prettyPrint
-						}
-				}
-
-			}
-		} ~
-		path("waiter" / LongNumber) {
-			waiterId =>
-				{
-					get {
-						complete {
-							WaiterService.get(waiterId).toJson.prettyPrint
-						}
-					} ~
-					put {
-						entity(as[Waiter]) {
-							waiter =>
-								complete {
-									WaiterService.update(waiterId, waiter).toJson.prettyPrint
-								}
-						}
-					} ~
-					delete {
-						complete {
-							WaiterService.delete(waiterId)
-						}
+			} ~
+			path("ingredient") {
+				post {
+					entity(as[Ingredient]) {
+						ingredient =>
+							complete {
+								IngredientService.create(ingredient)
+							}
+					}
+				} ~
+				get {
+					complete {
+						IngredientService.getAll()
 					}
 				}
-		} ~
-		path("order") {
-			post {
-				entity(as[Order]) {
-					order =>
-						complete {
-							OrderService.create(order).toJson.prettyPrint
-						}
-				}
-
-			}
-		} ~
-		path("order" / LongNumber) {
-			orderId =>
-				{
-					get {
-						complete {
-							OrderService.get(orderId).toJson.prettyPrint
-						}
-					} ~
-					put {
-						entity(as[Order]) {
-							order =>
-								complete {
-									OrderService.update(orderId, order).toJson.prettyPrint
-								}
-						}
-					} ~
-					delete {
-						complete {
-							OrderService.delete(orderId)
+			} ~
+			path("ingredient" / LongNumber) {
+				ingredientId =>
+					{
+						get {
+							complete {
+								IngredientService.get(ingredientId)
+							}
+						} ~
+						put {
+							entity(as[Ingredient]) {
+								ingredient =>
+									complete {
+										IngredientService.update(ingredientId, ingredient)
+									}
+							}
+						} ~
+						delete {
+							complete {
+								IngredientService.delete(ingredientId)
+							}
 						}
 					}
+			} ~		
+			path("waiter") {
+				post {
+					entity(as[Waiter]) {
+						waiter =>
+							complete {
+								WaiterService.create(waiter)
+							}
+					}
+				} ~
+				get {
+					complete {
+						WaiterService.getAll()
+					}
 				}
-		}		
+			} ~
+			path("waiter" / LongNumber) {
+				waiterId =>
+					{
+						get {
+							complete {
+								WaiterService.get(waiterId)
+							}
+						} ~
+						put {
+							entity(as[Waiter]) {
+								waiter =>
+									complete {
+										WaiterService.update(waiterId, waiter)
+									}
+							}
+						} ~
+						delete {
+							complete {
+								WaiterService.delete(waiterId)
+							}
+						}
+					}
+			} ~
+			path("order") {
+				post {
+					entity(as[Order]) {
+						order =>
+							complete {
+								OrderService.create(order)
+							}
+					}
+				} ~
+				get {
+					complete {
+						OrderService.getAll()
+					}
+				}
+			} ~
+			path("order" / LongNumber) {
+				orderId =>
+					{
+						get {
+							complete {
+								OrderService.get(orderId)
+							}
+						} ~
+						put {
+							entity(as[Order]) {
+								order =>
+									complete {
+										OrderService.update(orderId, order)
+									}
+							}
+						} ~
+						delete {
+							complete {
+								OrderService.delete(orderId)
+							}
+						}
+					}
+			}
+		}
+		
 	}
 	
 }

@@ -38,4 +38,8 @@ class WaiterDaoMongo extends WaiterDao with Configuration with IdGeneratorMongo 
 			case None => throw new NotFoundException("Waiter")
 		}
 	}
+	
+	def getAll(): List[Waiter] = {
+		coll.map(dbo => grater[Waiter].asObject(dbo)).toList
+	}	
 }

@@ -37,4 +37,8 @@ class DishDaoMongo extends DishDao with Configuration with IdGeneratorMongo {
 			case None => throw new NotFoundException("Dish")
 		}
 	}
+	
+	def getAll(): List[Dish] = {
+		coll.map(dbo => grater[Dish].asObject(dbo)).toList
+	}
 }

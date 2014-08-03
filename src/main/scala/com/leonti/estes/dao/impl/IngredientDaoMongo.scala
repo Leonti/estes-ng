@@ -38,4 +38,8 @@ class IngredientDaoMongo extends IngredientDao with Configuration with IdGenerat
 			case None => throw new NotFoundException("Ingredient")
 		}
 	}
+	
+	def getAll(): List[Ingredient] = {
+		coll.map(dbo => grater[Ingredient].asObject(dbo)).toList
+	}	
 }

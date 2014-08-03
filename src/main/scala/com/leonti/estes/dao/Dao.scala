@@ -10,6 +10,7 @@ trait Dao[T] {
 	def update(id: Long, entity: T): T
 	def delete(id: Long): T
 	def get(id: Long): T
+	def getAll(): List[T]
 }
 
 abstract class DishDao extends Dao[Dish]
