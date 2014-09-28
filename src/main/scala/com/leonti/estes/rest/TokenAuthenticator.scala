@@ -4,13 +4,13 @@ import scala.Left
 import scala.Right
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import spray.routing.AuthenticationFailedRejection
 import spray.routing.AuthenticationFailedRejection.CredentialsMissing
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import spray.routing.RequestContext
 import spray.routing.authentication.Authentication
 import spray.routing.authentication.ContextAuthenticator
+import scala.util.matching.Regex
 
 /**
  * Token based authentication for Spray Routing.
@@ -45,19 +45,32 @@ object TokenAuthenticator {
 
 	object TokenExtraction {
 
-		type TokenExtractor = RequestContext => Option[String]
+		type TokenExtractor = RequestContext => Option[(Long, String)]
+
+		val pattern = new Regex(".*/user/([0-9]+)/.*")
+
+		def parseUserId(uri: String): Option[Long] = pattern findFirstIn uri match {
+			case Some(pattern(userId)) => Some(userId.toLong)
+			case _ => None
+		}
 
 		def fromHeader(headerName: String): TokenExtractor = { context: RequestContext =>
-			context.request.headers.find(_.name == headerName).map(_.value)
+			for {
+				userId <- parseUserId(context.request.uri.path.toString)
+				token <- context.request.headers.find(_.name == headerName).map(_.value)
+			} yield (userId, token)
 		}
 
 		def fromQueryString(parameterName: String): TokenExtractor = { context: RequestContext =>
-			context.request.uri.query.get(parameterName)
+			for {
+				userId <- parseUserId(context.request.uri.path.toString)
+				token <- context.request.uri.query.get(parameterName)
+			} yield (userId, token)
 		}
 
 	}
 
-	class TokenAuthenticator[T](extractor: TokenExtraction.TokenExtractor, authenticator: (String => Future[Option[T]]))(implicit executionContext: ExecutionContext) extends ContextAuthenticator[T] {
+	class TokenAuthenticator[T](extractor: TokenExtraction.TokenExtractor, authenticator: ((Long, String) => Future[Option[T]]))(implicit executionContext: ExecutionContext) extends ContextAuthenticator[T] {
 
 		import AuthenticationFailedRejection._
 
@@ -66,8 +79,8 @@ object TokenAuthenticator {
 				case None =>
 					Future(
 						Left(AuthenticationFailedRejection(CredentialsMissing, List())))
-				case Some(token) =>
-					authenticator(token) map {
+				case Some((userId, token)) =>
+					authenticator(userId, token) map {
 						case Some(t) =>
 							Right(t)
 						case None =>
@@ -77,7 +90,7 @@ object TokenAuthenticator {
 
 	}
 
-	def apply[T](headerName: String, queryStringParameterName: String)(authenticator: (String => Future[Option[T]]))(implicit executionContext: ExecutionContext) = {
+	def apply[T](headerName: String, queryStringParameterName: String)(authenticator: ((Long, String) => Future[Option[T]]))(implicit executionContext: ExecutionContext) = {
 
 		def extractor(context: RequestContext) =
 			TokenExtraction.fromHeader(headerName)(context) orElse

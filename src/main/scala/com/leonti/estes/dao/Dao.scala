@@ -1,9 +1,14 @@
 package com.leonti.estes.dao
 
-import com.leonti.estes.domain.Dish
-import com.leonti.estes.domain.Ingredient
-import com.leonti.estes.domain.Order
-import com.leonti.estes.domain.Waiter
+import com.leonti.estes.domain._
+
+trait CompositeIdDao[T] {
+	def create(entity: T): T
+	def update(parentId: Long, id: Long, entity: T): T
+	def delete(parentId: Long, id: Long): T
+	def get(parentId: Long, id: Long): T
+	def getAll(parentId: Long): List[T]
+}
 
 trait Dao[T] {
 	def create(entity: T): T
@@ -13,9 +18,18 @@ trait Dao[T] {
 	def getAll(): List[T]
 }
 
-abstract class DishDao extends Dao[Dish]
-abstract class IngredientDao extends Dao[Ingredient]
-abstract class OrderDao extends Dao[Order]
-abstract class WaiterDao extends Dao[Waiter]
+abstract class DishDao extends CompositeIdDao[Dish]
+abstract class IngredientDao extends CompositeIdDao[Ingredient]
+abstract class OrderDao extends CompositeIdDao[Order]
+abstract class WaiterDao extends CompositeIdDao[Waiter]
+abstract class UserDao extends Dao[User] {
+	def getOrCreateUser(email: String): User
+}
+
+trait UserSessionDao {
+	def create(userSession: UserSession): UserSession
+	def delete(id: String)
+	def get(id: String): UserSession
+}
 
 class NotFoundException(msg: String) extends Exception

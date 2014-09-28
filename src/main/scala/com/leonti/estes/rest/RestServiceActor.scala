@@ -2,22 +2,19 @@ package com.leonti.estes.rest
 
 import scala.concurrent.Future
 import com.leonti.estes.domain._
-import com.leonti.estes.domain.JsonProtocol._
+import com.leonti.estes.rest.JsonProtocol._
 import com.leonti.estes.service._
 import akka.actor.Actor
 import akka.event.slf4j.SLF4JLogging
-import spray.http._
 import spray.client.pipelining._
+import spray.http._
 import spray.httpx.SprayJsonSupport._
 import spray.httpx.unmarshalling._
 import spray.json._
 import spray.routing._
 import spray.routing.HttpService
-import spray.routing.authentication.BasicAuth
-import spray.routing.authentication.UserPass
 import scala.util.Success
 import scala.util.Failure
-import scala.collection.immutable.HashMap
 
 class RestServiceActor extends Actor with RestService {
 
@@ -27,7 +24,9 @@ class RestServiceActor extends Actor with RestService {
 
 }
 
-case class User(id: Long, name: String)
+//object OauthJsonProtocol extends DefaultJsonProtocol {
+//	
+//}
 
 trait RestService extends HttpService with CORSSupport with TokenAuthentication with SLF4JLogging {
 
@@ -46,174 +45,198 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 	val restRoute: Route = respondWithMediaType(MediaTypes.`application/json`) {
 		cors {
 			authenticate(tokenAuthenticator) { user =>
-				pathPrefix("rest") {
-					path("dish") {
-						post {
-							entity(as[Dish]) {
-								dish =>
+				pathPrefix("rest" / "user" / LongNumber) {
+					userId => {
+						path("dish") {
+							post {
+								entity(as[Dish]) {
+									dish =>
+										complete {
+											DishService.create(dish)
+										}
+								}
+							} ~
+								get {
 									complete {
-										DishService.create(dish)
+										println(s"username is '$user'")
+										DishService.getAll(userId)
+									}
+								}
+						} ~
+							path("dish" / LongNumber) {
+								dishId =>
+									{
+										get {
+											complete {
+												DishService.get(userId, dishId)
+											}
+										} ~
+											put {
+												entity(as[Dish]) {
+													dish =>
+														complete {
+															DishService.update(userId, dishId, dish)
+														}
+												}
+											} ~
+											delete {
+												complete {
+													DishService.delete(userId, dishId)
+												}
+											}
+									}
+							} ~
+							path("ingredient") {
+								post {
+									entity(as[Ingredient]) {
+										ingredient =>
+											complete {
+												IngredientService.create(ingredient)
+											}
+									}
+								} ~
+									get {
+										complete {
+											IngredientService.getAll(userId)
+										}
+									}
+							} ~
+							path("ingredient" / LongNumber) {
+								ingredientId =>
+									{
+										get {
+											complete {
+												IngredientService.get(userId, ingredientId)
+											}
+										} ~
+											put {
+												entity(as[Ingredient]) {
+													ingredient =>
+														complete {
+															IngredientService.update(userId, ingredientId, ingredient)
+														}
+												}
+											} ~
+											delete {
+												complete {
+													IngredientService.delete(userId, ingredientId)
+												}
+											}
+									}
+							} ~
+							path("waiter") {
+								post {
+									entity(as[Waiter]) {
+										waiter =>
+											complete {
+												WaiterService.create(waiter)
+											}
+									}
+								} ~
+									get {
+										complete {
+											WaiterService.getAll(userId)
+										}
+									}
+							} ~
+							path("waiter" / LongNumber) {
+								waiterId =>
+									{
+										get {
+											complete {
+												WaiterService.get(userId, waiterId)
+											}
+										} ~
+											put {
+												entity(as[Waiter]) {
+													waiter =>
+														complete {
+															WaiterService.update(userId, waiterId, waiter)
+														}
+												}
+											} ~
+											delete {
+												complete {
+													WaiterService.delete(userId, waiterId)
+												}
+											}
+									}
+							} ~
+							path("order") {
+								post {
+									entity(as[Order]) {
+										order =>
+											complete {
+												OrderService.create(order)
+											}
+									}
+								} ~
+									get {
+										complete {
+											OrderService.getAll(userId)
+										}
+									}
+							} ~
+							path("order" / LongNumber) {
+								orderId =>
+									{
+										get {
+											complete {
+												OrderService.get(userId, orderId)
+											}
+										} ~
+											put {
+												entity(as[Order]) {
+													order =>
+														complete {
+															OrderService.update(userId, orderId, order)
+														}
+												}
+											} ~
+											delete {
+												complete {
+													OrderService.delete(userId, orderId)
+												}
+											}
 									}
 							}
-						} ~
-							get {
-								complete {
-									println(s"username is '$user'")
-									DishService.getAll()
-								}
-							}
-					} ~
-						path("dish" / LongNumber) {
-							dishId =>
-								{
-									get {
-										complete {
-											DishService.get(dishId)
-										}
-									} ~
-										put {
-											entity(as[Dish]) {
-												dish =>
-													complete {
-														DishService.update(dishId, dish)
-													}
-											}
-										} ~
-										delete {
-											complete {
-												DishService.delete(dishId)
-											}
-										}
-								}
-						} ~
-						path("ingredient") {
-							post {
-								entity(as[Ingredient]) {
-									ingredient =>
-										complete {
-											IngredientService.create(ingredient)
-										}
-								}
-							} ~
-								get {
-									complete {
-										IngredientService.getAll()
-									}
-								}
-						} ~
-						path("ingredient" / LongNumber) {
-							ingredientId =>
-								{
-									get {
-										complete {
-											IngredientService.get(ingredientId)
-										}
-									} ~
-										put {
-											entity(as[Ingredient]) {
-												ingredient =>
-													complete {
-														IngredientService.update(ingredientId, ingredient)
-													}
-											}
-										} ~
-										delete {
-											complete {
-												IngredientService.delete(ingredientId)
-											}
-										}
-								}
-						} ~
-						path("waiter") {
-							post {
-								entity(as[Waiter]) {
-									waiter =>
-										complete {
-											WaiterService.create(waiter)
-										}
-								}
-							} ~
-								get {
-									complete {
-										WaiterService.getAll()
-									}
-								}
-						} ~
-						path("waiter" / LongNumber) {
-							waiterId =>
-								{
-									get {
-										complete {
-											WaiterService.get(waiterId)
-										}
-									} ~
-										put {
-											entity(as[Waiter]) {
-												waiter =>
-													complete {
-														WaiterService.update(waiterId, waiter)
-													}
-											}
-										} ~
-										delete {
-											complete {
-												WaiterService.delete(waiterId)
-											}
-										}
-								}
-						} ~
-						path("order") {
-							post {
-								entity(as[Order]) {
-									order =>
-										complete {
-											OrderService.create(order)
-										}
-								}
-							} ~
-								get {
-									complete {
-										OrderService.getAll()
-									}
-								}
-						} ~
-						path("order" / LongNumber) {
-							orderId =>
-								{
-									get {
-										complete {
-											OrderService.get(orderId)
-										}
-									} ~
-										put {
-											entity(as[Order]) {
-												order =>
-													complete {
-														OrderService.update(orderId, order)
-													}
-											}
-										} ~
-										delete {
-											complete {
-												OrderService.delete(orderId)
-											}
-										}
-								}
-						}
+					}	
 				}	
 			} ~
-				path("login") {
-					ctx => {
-						println("No authentication!")
-						
-						val pipeline: HttpRequest => Future[Map[String, String]] = (sendReceive ~> unmarshal[Map[String, String]])
-						val response: Future[Map[String, String]] = pipeline(Get("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=ya29.egA8k9VcfSa1NR0AAAC9LDx_ofMf2RWmO2UCnKkbM0FQA0gAdmPl1gKcZ18aLg"))
-						
-						response onComplete {
-							case Success(content: Map[String, String]) => ctx.complete(content)
-							case Failure(t) => ctx.complete(t.getMessage)
-						}
-						
+				path("login" / Segment) {
+					token => {
+						ctx => {
+							
+							val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
+							val response: Future[HttpResponse] = pipeline(Get(s"https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=$token"))
+							
+							response onComplete {
+								case Success(httpResponse: HttpResponse) => {
+									if (httpResponse.status.isSuccess) {						
+										val oauthResponse = JsonParser(httpResponse.entity.asString).convertTo[OauthResponse];
+										val user = UserService.getOrCreateUser(oauthResponse.email)
+										val userSession = UserSessionService.createUserSession(user)
+										
+										println(s"Logged in user '$oauthResponse'")
+										
+										ctx.complete(userSession)	
+									} else {
+										ctx.complete(JsonParser(httpResponse.entity.asString).convertTo[OauthError])
+									}
+								}
+								case Failure(t) => {
+									ctx.complete(t.getMessage)
+								}
+							}
+						}						
+					}
+				} ~ 
+				path("logout" / Segment) {
+					token => {
+							complete {
+								UserSessionService.delete(token)
+								"ok"
+							}						
 					}
 				}
 

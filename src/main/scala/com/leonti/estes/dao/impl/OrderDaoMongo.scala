@@ -15,30 +15,30 @@ class OrderDaoMongo extends OrderDao with Configuration with IdGeneratorMongo {
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
 	def create(order: Order): Order = {
-		val withId = order.copy(id = Some(generateId(table)))
+		val withId = order.copy(id = generateId(table, order.id.userId))
 		coll.insert(grater[Order].asDBObject(withId))
 		withId
 	}
 	
-	def update(id: Long, order: Order): Order = {
-		coll.update(toId(id), grater[Order].asDBObject(order))
+	def update(userId: Long, id: Long, order: Order): Order = {
+		coll.update(toCompositeId(userId, id), grater[Order].asDBObject(order))
 		order
 	}
 	
-	def delete(id: Long) = {
-		val order = get(id)
-		coll.remove(toId(id))
+	def delete(userId: Long, id: Long) = {
+		val order = get(userId, id)
+		coll.remove(toCompositeId(userId, id))
 		order
 	}
 	
-	def get(id: Long): Order = {
-		coll.findOne(toId(id)) match {
+	def get(userId: Long, id: Long): Order = {
+		coll.findOne(toCompositeId(userId, id)) match {
 			case Some(dbo) => grater[Order].asObject(dbo)
 			case None => throw new NotFoundException("Order")
 		}
 	}
 	
-	def getAll(): List[Order] = {
-		coll.map(dbo => grater[Order].asObject(dbo)).toList
+	def getAll(userId: Long): List[Order] = {
+		coll.find(toUserId(userId)).map(dbo => grater[Order].asObject(dbo)).toList
 	}	
 }

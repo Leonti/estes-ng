@@ -16,30 +16,30 @@ class IngredientDaoMongo extends IngredientDao with Configuration with IdGenerat
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
 	def create(ingredient: Ingredient): Ingredient = {
-		val withId = ingredient.copy(id = Some(generateId(table)))
+		val withId = ingredient.copy(id = generateId(table, ingredient.id.userId))
 		coll.insert(grater[Ingredient].asDBObject(withId))
 		withId
 	}
 	
-	def update(id: Long, ingredient: Ingredient): Ingredient = {
-		coll.update(toId(id), grater[Ingredient].asDBObject(ingredient))
+	def update(userId: Long, id: Long, ingredient: Ingredient): Ingredient = {
+		coll.update(toCompositeId(userId, id), grater[Ingredient].asDBObject(ingredient))
 		ingredient
 	}
 	
-	def delete(id: Long) = {
-		val ingredient = get(id)
-		coll.remove(toId(id))
+	def delete(userId: Long, id: Long) = {
+		val ingredient = get(userId, id)
+		coll.remove(toCompositeId(userId, id))
 		ingredient
 	}
 	
-	def get(id: Long): Ingredient = {
-		coll.findOne(toId(id)) match {
+	def get(userId: Long, id: Long): Ingredient = {
+		coll.findOne(toCompositeId(userId, id)) match {
 			case Some(dbo) => grater[Ingredient].asObject(dbo)
 			case None => throw new NotFoundException("Ingredient")
 		}
 	}
 	
-	def getAll(): List[Ingredient] = {
-		coll.map(dbo => grater[Ingredient].asObject(dbo)).toList
+	def getAll(userId: Long): List[Ingredient] = {
+		coll.find(toUserId(userId)).map(dbo => grater[Ingredient].asObject(dbo)).toList
 	}	
 }

@@ -5,14 +5,15 @@ import spray.json.DefaultJsonProtocol
 import spray.json._
 import DefaultJsonProtocol._
 
-case class Waiter(@Key("_id") id: Option[Long], name: String)
-case class Ingredient(@Key("_id") id: Option[Long], name: String, priceChange: BigDecimal)
-case class Dish(@Key("_id") id: Option[Long], name: String, ingredients: List[Ingredient], price: BigDecimal)
-case class Order(@Key("_id") id: Option[Long], waiter: Waiter, dishes: List[Dish])
+case class CompositeId(userId: Long, id: Option[Long])
 
-object JsonProtocol extends DefaultJsonProtocol {
-	implicit val waiterFormat = jsonFormat2(Waiter)
-  implicit val ingredientFormat = jsonFormat3(Ingredient)
-  implicit val dishFormat = jsonFormat4(Dish)
-  implicit val orderFormat = jsonFormat3(Order)
-}
+case class User(@Key("_id") id: Option[Long], email: String)
+case class UserSession(@Key("_id") id: String, userId: Long, created: Long)
+case class Waiter(@Key("_id") id: CompositeId, name: String)
+case class Ingredient(@Key("_id") id: CompositeId, name: String, priceChange: BigDecimal)
+case class Dish(@Key("_id") id: CompositeId, name: String, ingredients: List[Ingredient], price: BigDecimal)
+case class Order(@Key("_id") id: CompositeId, waiter: Waiter, dishes: List[Dish])
+
+case class OauthError(error: String, error_description: String)
+case class OauthResponse(user_id: String, scope: String, email: String, verified_email: Boolean)
+

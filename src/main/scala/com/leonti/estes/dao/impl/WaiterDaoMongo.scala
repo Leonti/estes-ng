@@ -16,30 +16,30 @@ class WaiterDaoMongo extends WaiterDao with Configuration with IdGeneratorMongo 
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
 	def create(waiter: Waiter): Waiter = {
-		val withId = waiter.copy(id = Some(generateId(table)))
+		val withId = waiter.copy(id = generateId(table, waiter.id.userId))
 		coll.insert(grater[Waiter].asDBObject(withId))
 		withId
 	}
 	
-	def update(id: Long, waiter: Waiter): Waiter = {
-		coll.update(toId(id), grater[Waiter].asDBObject(waiter))
+	def update(userId: Long, id: Long, waiter: Waiter): Waiter = {
+		coll.update(toCompositeId(userId, id), grater[Waiter].asDBObject(waiter))
 		waiter
 	}
 	
-	def delete(id: Long) = {
-		val waiter = get(id)
-		coll.remove(toId(id))
+	def delete(userId: Long, id: Long) = {
+		val waiter = get(userId, id)
+		coll.remove(toCompositeId(userId, id))
 		waiter
 	}
 	
-	def get(id: Long): Waiter = {
-		coll.findOne(toId(id)) match {
+	def get(userId: Long, id: Long): Waiter = {
+		coll.findOne(toCompositeId(userId, id)) match {
 			case Some(dbo) => grater[Waiter].asObject(dbo)
 			case None => throw new NotFoundException("Waiter")
 		}
 	}
 	
-	def getAll(): List[Waiter] = {
-		coll.map(dbo => grater[Waiter].asObject(dbo)).toList
+	def getAll(userId: Long): List[Waiter] = {
+		coll.find(toUserId(userId)).map(dbo => grater[Waiter].asObject(dbo)).toList
 	}	
 }
