@@ -199,6 +199,22 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 												}
 											}
 									}
+							} ~
+							path("settings") {
+								get {
+									complete {
+										SettingsService.getOrCreate(userId)
+									}
+								} ~
+								put {
+									entity(as[Settings]) {
+										settings => {
+											complete {
+												SettingsService.update(userId, settings)
+											}
+										}
+									}
+								}
 							}
 					}	
 				}	
@@ -214,7 +230,7 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 								case Success(httpResponse: HttpResponse) => {
 									if (httpResponse.status.isSuccess) {						
 										val oauthResponse = JsonParser(httpResponse.entity.asString).convertTo[OauthResponse];
-										val user = UserService.getOrCreateUser(oauthResponse.email)
+										val user = UserService.getOrCreate(oauthResponse.email)
 										val userSession = UserSessionService.createUserSession(user)
 										
 										println(s"Logged in user '$oauthResponse'")

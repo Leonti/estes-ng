@@ -31,13 +31,6 @@ class UserDaoMongo extends UserDao with Configuration with IdGeneratorMongo {
 		coll.remove(toId(id))
 		order
 	}
-
-	def getOrCreateUser(email: String): User = {
-		getByEmail(email) match {
-			case Some(user: User) => user
-			case None => create(User(id = None, email = email))
-		}		
-	}
 	
 	def getByEmail(email: String): Option[User] = {
 		for {
