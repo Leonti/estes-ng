@@ -52,7 +52,7 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 								entity(as[Dish]) {
 									dish =>
 										complete {
-											DishService.create(dish)
+											DishService.create(userId, dish)
 										}
 								}
 							} ~
@@ -91,7 +91,7 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 									entity(as[Ingredient]) {
 										ingredient =>
 											complete {
-												IngredientService.create(ingredient)
+												IngredientService.create(userId, ingredient)
 											}
 									}
 								} ~
@@ -129,7 +129,7 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 									entity(as[Waiter]) {
 										waiter =>
 											complete {
-												WaiterService.create(waiter)
+												WaiterService.create(userId, waiter)
 											}
 									}
 								} ~
@@ -167,7 +167,7 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 									entity(as[Order]) {
 										order =>
 											complete {
-												OrderService.create(order)
+												OrderService.create(userId, order)
 											}
 									}
 								} ~

@@ -15,8 +15,8 @@ class IngredientDaoMongo extends IngredientDao with Configuration with IdGenerat
 	val table = "ingredient"
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
-	def create(ingredient: Ingredient): Ingredient = {
-		val withId = ingredient.copy(id = generateId(table, ingredient.id.userId))
+	def create(userId: Long, ingredient: Ingredient): Ingredient = {
+		val withId = ingredient.copy(id = Some(generateId(table, userId)))
 		coll.insert(grater[Ingredient].asDBObject(withId))
 		withId
 	}

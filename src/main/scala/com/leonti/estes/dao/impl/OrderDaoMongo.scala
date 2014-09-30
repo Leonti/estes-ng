@@ -14,8 +14,8 @@ class OrderDaoMongo extends OrderDao with Configuration with IdGeneratorMongo {
 	val table = "order"
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
-	def create(order: Order): Order = {
-		val withId = order.copy(id = generateId(table, order.id.userId))
+	def create(userId: Long, order: Order): Order = {
+		val withId = order.copy(id = Some(generateId(table, userId)))
 		coll.insert(grater[Order].asDBObject(withId))
 		withId
 	}

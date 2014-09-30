@@ -17,14 +17,14 @@ trait IdGeneratorMongo {
 		}
 		val result = coll.findAndModify(id, $inc("counter" -> 1))
 		result.get.as[Long]("counter")
-		CompositeId(userId = userId, id = Some(result.get.as[Long]("counter")))
+		CompositeId(userId = userId, id = result.get.as[Long]("counter"))
 	}
 	
 	def generateId(table: String): Long = {
-		generateId(table, 0).id.get
+		generateId(table, 0).id
 	}
 	
-	def toCompositeId(userId: Long, id: Long): MongoDBObject = MongoDBObject("_id" -> grater[CompositeId].asDBObject(CompositeId(userId, Some(id)))) 
+	def toCompositeId(userId: Long, id: Long): MongoDBObject = MongoDBObject("_id" -> grater[CompositeId].asDBObject(CompositeId(userId, id))) 
 	def toId(id: Long): MongoDBObject = MongoDBObject("_id" -> id)
 	def toUserId(userId: Long) : MongoDBObject = MongoDBObject("_id.userId" -> userId)
 }

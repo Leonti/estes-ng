@@ -14,8 +14,8 @@ class DishDaoMongo extends DishDao with Configuration with IdGeneratorMongo {
 	val table = "dish"
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
-	def create(dish: Dish): Dish = {
-		val withId = dish.copy(id = generateId(table, dish.id.userId))
+	def create(userId: Long, dish: Dish): Dish = {
+		val withId = dish.copy(id = Some(generateId(table, userId)))
 		coll.insert(grater[Dish].asDBObject(withId))
 		withId
 	}

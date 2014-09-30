@@ -3,7 +3,7 @@ package com.leonti.estes.dao
 import com.leonti.estes.domain._
 
 trait CompositeIdDao[T] {
-	def create(entity: T): T
+	def create(parentId: Long, entity: T): T
 	def update(parentId: Long, id: Long, entity: T): T
 	def delete(parentId: Long, id: Long): T
 	def get(parentId: Long, id: Long): T

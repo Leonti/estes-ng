@@ -15,8 +15,8 @@ class WaiterDaoMongo extends WaiterDao with Configuration with IdGeneratorMongo 
 	val table = "waiter"
 	lazy val coll: MongoCollection = DatabaseClient.db(table)
 	
-	def create(waiter: Waiter): Waiter = {
-		val withId = waiter.copy(id = generateId(table, waiter.id.userId))
+	def create(userId: Long, waiter: Waiter): Waiter = {
+		val withId = waiter.copy(id = Some(generateId(table, userId)))
 		coll.insert(grater[Waiter].asDBObject(withId))
 		withId
 	}
