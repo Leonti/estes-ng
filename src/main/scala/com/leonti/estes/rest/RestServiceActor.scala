@@ -86,44 +86,6 @@ trait RestService extends HttpService with CORSSupport with TokenAuthentication 
 											}
 									}
 							} ~
-							path("ingredient") {
-								post {
-									entity(as[Ingredient]) {
-										ingredient =>
-											complete {
-												IngredientService.create(userId, ingredient)
-											}
-									}
-								} ~
-									get {
-										complete {
-											IngredientService.getAll(userId)
-										}
-									}
-							} ~
-							path("ingredient" / LongNumber) {
-								ingredientId =>
-									{
-										get {
-											complete {
-												IngredientService.get(userId, ingredientId)
-											}
-										} ~
-											put {
-												entity(as[Ingredient]) {
-													ingredient =>
-														complete {
-															IngredientService.update(userId, ingredientId, ingredient)
-														}
-												}
-											} ~
-											delete {
-												complete {
-													IngredientService.delete(userId, ingredientId)
-												}
-											}
-									}
-							} ~
 							path("waiter") {
 								post {
 									entity(as[Waiter]) {

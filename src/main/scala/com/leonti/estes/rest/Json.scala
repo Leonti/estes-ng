@@ -6,7 +6,7 @@ import com.leonti.estes.domain._
 object JsonProtocol extends DefaultJsonProtocol {
 	implicit val compositeIdFromat = jsonFormat2(CompositeId)
 	implicit val waiterFormat = jsonFormat2(Waiter)
-  implicit val ingredientFormat = jsonFormat3(Ingredient)
+  implicit val ingredientFormat = jsonFormat2(Ingredient)
   implicit val dishFormat = jsonFormat6(Dish)
   implicit val orderFormat = jsonFormat6(Order)
   implicit val userFormat = jsonFormat2(User)

@@ -19,7 +19,6 @@ trait Dao[T] {
 }
 
 abstract class DishDao extends CompositeIdDao[Dish]
-abstract class IngredientDao extends CompositeIdDao[Ingredient]
 abstract class OrderDao extends CompositeIdDao[Order]
 abstract class WaiterDao extends CompositeIdDao[Waiter]
 abstract class UserDao extends Dao[User]

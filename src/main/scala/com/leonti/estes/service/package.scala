@@ -1,6 +1,5 @@
 package com.leonti.estes
 
-import com.leonti.estes.dao.impl.IngredientDaoMongo
 import com.leonti.estes.dao.impl._
 import com.leonti.estes.domain.UserSession
 import com.leonti.estes.domain.User
@@ -9,7 +8,6 @@ import com.leonti.estes.domain.Settings
 package object service {
 
 	object DishService extends DishDaoMongo
-	object IngredientService extends IngredientDaoMongo
 	object OrderService extends OrderDaoMongo
 	object WaiterService extends WaiterDaoMongo
 	object UserService extends UserDaoMongo {
