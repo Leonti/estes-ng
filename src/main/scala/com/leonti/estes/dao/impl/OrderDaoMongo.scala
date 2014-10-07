@@ -6,6 +6,9 @@ import com.mongodb.casbah.MongoCollection
 import com.leonti.estes.dao.NotFoundException
 import com.leonti.estes.dao.DatabaseClient
 import com.leonti.estes.domain.Order
+import com.leonti.estes.domain.OrderDish
+import com.leonti.estes.domain.Ingredient
+
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import com.novus.salat.global._
@@ -33,12 +36,37 @@ class OrderDaoMongo extends OrderDao with Configuration with IdGeneratorMongo {
 	
 	def get(userId: Long, id: Long): Order = {
 		coll.findOne(toCompositeId(userId, id)) match {
-			case Some(dbo) => grater[Order].asObject(dbo)
+			case Some(dbo) => toOrder(dbo)
 			case None => throw new NotFoundException("Order")
 		}
 	}
 	
 	def getAll(userId: Long): List[Order] = {
 		coll.find(toUserId(userId)).map(dbo => grater[Order].asObject(dbo)).toList
+	}
+	
+	def toOrder(dbo: DBObject): Order = {
+		val order = grater[Order].asObject(dbo)
+		order.copy(dishes = toDishes(dbo.getAs[List[BasicDBObject]]("dishes").get))
+	}
+	
+	def toDishes(orderDishesDbo: List[BasicDBObject]): List[OrderDish] = {
+		orderDishesDbo.map(dbo => {
+			toDish(dbo)
+		}).toList
+	}
+	
+	def toDish(dbo: DBObject): OrderDish = {
+		val dish = grater[OrderDish].asObject(dbo)
+		dish.copy(ingredients = toIngredients(dbo.getAs[List[BasicDBList]]("ingredients").get))
+	}
+	
+	def toIngredients(ingredientsDbo: List[BasicDBList]): List[List[Ingredient]] = {
+		ingredientsDbo.map((ingredientList: BasicDBList) => {
+			ingredientList.map(ingredient => {
+				val ingredientDbo = ingredient.asInstanceOf[BasicDBList]
+				Ingredient(ingredientDbo.get(0).asInstanceOf[String], ingredientDbo.get(1).asInstanceOf[String])
+			}).toList
+		}).toList		
 	}	
 }
