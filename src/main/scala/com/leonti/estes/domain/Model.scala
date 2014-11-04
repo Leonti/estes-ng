@@ -9,13 +9,28 @@ case class CompositeId(userId: Long, id: Long)
 
 case class User(@Key("_id") id: Option[Long], email: String)
 case class UserSession(@Key("_id") id: String, userId: Long, created: Long)
-case class Settings(@Key("_id") userId: Long, tax: BigDecimal, printer: String, receiptWidth: Int)
-case class Waiter(@Key("_id") id: Option[CompositeId], name: String)
-case class Ingredient(name: String, priceChange: String)
-case class Dish(@Key("_id") id: Option[CompositeId], name: String, ingredients: List[List[Ingredient]], menus: List[String], price: String)
-case class OrderDish(name: String, price: String, ingredients: List[List[Ingredient]], selectedIngredients: List[Ingredient], status: String)
-case class Order(@Key("_id") id: Option[CompositeId], waiter: Waiter, dishes: List[OrderDish], submitted: Long, status: String, note: String)
 
+case class Settings(@Key("_id") userId: Long, printer: String, receiptWidth: Int)
+case class Waiter(@Key("_id") id: Option[CompositeId], name: String)
+case class ArticleOption(id: String, name: String, priceChange: String)
+case class TaxGroup(id: String, name: String, tax: String)
+
+case class Article(@Key("_id") id: Option[CompositeId], name: String, price: String, tags: List[String], 
+		articleOptions: List[List[ArticleOption]], taxGroup: TaxGroup, kitchen: Boolean)
+
+case class OrderArticle(id: String, name: String, price: String, tax: String, discount: String, 
+		articleOptions: List[List[ArticleOption]], selectedOptions: List[ArticleOption], status: String, kitchen: Boolean)
+
+case class Order(@Key("_id") id: Option[CompositeId], dayId: Option[Int], waiter: Waiter, submitted: Option[Long], 
+		articles: List[OrderArticle], discount: String, status: String,  note: String)
+
+case class OrderPrepared(orderId: CompositeId)		
+case class ArticlePrepared(orderId: CompositeId, articleId: String)		
+case class Event(@Key("_id") id: Option[CompositeId], timestamp: Option[Long], ack: List[String],
+		orderPrepared: OrderPrepared, articlePrepared: ArticlePrepared)
+
+case class PatchRequest(op: String, path: String, value: String)		
+		
 case class OauthError(error: String, error_description: String)
 case class OauthResponse(user_id: String, scope: String, email: String, verified_email: Boolean)
 

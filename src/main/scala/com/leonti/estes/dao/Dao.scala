@@ -18,9 +18,12 @@ trait Dao[T] {
 	def getAll(): List[T]
 }
 
-abstract class DishDao extends CompositeIdDao[Dish]
-abstract class OrderDao extends CompositeIdDao[Order]
+abstract class ArticleDao extends CompositeIdDao[Article]
+abstract class OrderDao extends CompositeIdDao[Order] {
+	def getInRange(id: Long, from: Long, to: Long): List[Order]
+}
 abstract class WaiterDao extends CompositeIdDao[Waiter]
+abstract class EventDao extends CompositeIdDao[Event]
 abstract class UserDao extends Dao[User]
 
 trait UserSessionDao {

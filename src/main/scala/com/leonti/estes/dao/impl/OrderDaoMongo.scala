@@ -6,8 +6,8 @@ import com.mongodb.casbah.MongoCollection
 import com.leonti.estes.dao.NotFoundException
 import com.leonti.estes.dao.DatabaseClient
 import com.leonti.estes.domain.Order
-import com.leonti.estes.domain.OrderDish
-import com.leonti.estes.domain.Ingredient
+import com.leonti.estes.domain.OrderArticle
+import com.leonti.estes.domain.ArticleOption
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
@@ -42,30 +42,35 @@ class OrderDaoMongo extends OrderDao with Configuration with IdGeneratorMongo {
 	}
 	
 	def getAll(userId: Long): List[Order] = {
-		coll.find(toUserId(userId)).map(dbo => grater[Order].asObject(dbo)).toList
+		coll.find(toUserId(userId)).map(dbo => toOrder(dbo)).toList
 	}
 	
 	def toOrder(dbo: DBObject): Order = {
 		val order = grater[Order].asObject(dbo)
-		order.copy(dishes = toDishes(dbo.getAs[List[BasicDBObject]]("dishes").get))
+		order.copy(articles = toOrderArticles(dbo.getAs[List[BasicDBObject]]("articles").get))
 	}
 	
-	def toDishes(orderDishesDbo: List[BasicDBObject]): List[OrderDish] = {
-		orderDishesDbo.map(dbo => {
-			toDish(dbo)
+	def getInRange(id: Long, from: Long, to: Long): List[Order] = {
+		val filter = MongoDBObject("submitted" -> MongoDBObject("$gte" -> from, "$lte" -> to))
+		coll.find(filter).map(dbo => toOrder(dbo)).toList
+	}
+	
+	def toOrderArticles(orderArticlesDbo: List[BasicDBObject]): List[OrderArticle] = {
+		orderArticlesDbo.map(dbo => {
+			toOrderArticle(dbo)
 		}).toList
 	}
 	
-	def toDish(dbo: DBObject): OrderDish = {
-		val dish = grater[OrderDish].asObject(dbo)
-		dish.copy(ingredients = toIngredients(dbo.getAs[List[BasicDBList]]("ingredients").get))
+	def toOrderArticle(dbo: DBObject): OrderArticle = {
+		val article = grater[OrderArticle].asObject(dbo)
+		article.copy(articleOptions = toOptions(dbo.getAs[List[BasicDBList]]("articleOptions").get))
 	}
 	
-	def toIngredients(ingredientsDbo: List[BasicDBList]): List[List[Ingredient]] = {
-		ingredientsDbo.map((ingredientList: BasicDBList) => {
-			ingredientList.map(ingredient => {
-				val ingredientDbo = ingredient.asInstanceOf[BasicDBList]
-				Ingredient(ingredientDbo.get(0).asInstanceOf[String], ingredientDbo.get(1).asInstanceOf[String])
+	def toOptions(optionsDbo: List[BasicDBList]): List[List[ArticleOption]] = {
+		optionsDbo.map((optionList: BasicDBList) => {
+			optionList.map(option => {
+				val optionDbo = option.asInstanceOf[BasicDBList]
+				ArticleOption(optionDbo.get(0).asInstanceOf[String], optionDbo.get(1).asInstanceOf[String], optionDbo.get(2).asInstanceOf[String])
 			}).toList
 		}).toList		
 	}	
